@@ -32,8 +32,12 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c := exec.Command("asciiquarium")
+	c := exec.CommandContext(r.Context(), "asciiquarium")
 	c.Env = []string{"TERM=xterm-256color"}
+	defer func ()  {
+		c.Process.Kill()
+		c.Process.Wait()
+	}()
 
 	size := &pty.Winsize{
 		Cols: 100,
@@ -47,6 +51,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
+	defer f.Close()
 
 	w.Header().Set("Transfer-Encoding", "chunked")
 	w.WriteHeader(http.StatusOK)
