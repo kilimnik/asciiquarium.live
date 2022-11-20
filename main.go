@@ -4,8 +4,10 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strings"
+	"net/url"
 	"os/exec"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/creack/pty"
@@ -23,6 +25,19 @@ func main() {
 	log.Fatal(s.ListenAndServe())
 }
 
+func parseUInt(query url.Values, key string, def uint64) (uint64, error) {
+	if !query.Has(key) {
+		return def, nil
+	}
+
+	val, err := strconv.ParseUint(query.Get(key), 10, 16)
+	if err != nil {
+		return 0, err
+	}
+
+	return val, nil
+}
+
 func handle(w http.ResponseWriter, r *http.Request) {
 	userAgent := r.Header.Get("User-Agent")
 	if !strings.Contains(userAgent, "curl") {
@@ -32,22 +47,40 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	query := r.URL.Query()
+
+	cols, err := parseUInt(query, "cols", 100)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		io.WriteString(w, "cols: "+err.Error())
+
+		return
+	}
+
+	rows, err := parseUInt(query, "rows", 30)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		io.WriteString(w, "rows: "+err.Error())
+
+		return
+	}
+
 	c := exec.CommandContext(r.Context(), "asciiquarium")
 	c.Env = []string{"TERM=xterm-256color"}
-	defer func ()  {
+	defer func() {
 		c.Process.Kill()
 		c.Process.Wait()
 	}()
 
 	size := &pty.Winsize{
-		Cols: 100,
-		Rows: 30,
+		Cols: uint16(cols),
+		Rows: uint16(rows),
 	}
 
 	f, err := pty.StartWithSize(c, size)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, "Interal Server Error: " + err.Error())
+		io.WriteString(w, "Interal Server Error: "+err.Error())
 
 		return
 	}
