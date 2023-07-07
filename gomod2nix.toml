@@ -1,0 +1,6 @@
+schema = 3
+
+[mod]
+  [mod."github.com/creack/pty"]
+    version = "v1.1.18"
+    hash = "sha256-xMpCnIDjIf1NpmuywaK6cRaYnQ4kXvXU5n57aQqY6S8="
