@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -14,10 +16,17 @@ import (
 )
 
 func main() {
+	host := flag.String("host", "0.0.0.0", "host to serve on")
+	port := flag.Int("port", 8080, "port to serve on")
+	flag.Parse()
+
+	address := fmt.Sprintf("%s:%d", *host, *port)
+	fmt.Printf("Listening on %s\n", address)
+
 	http.HandleFunc("/", handle)
 
 	s := &http.Server{
-		Addr:           ":8080",
+		Addr:           address,
 		ReadTimeout:    0,
 		WriteTimeout:   0,
 		MaxHeaderBytes: 0,
