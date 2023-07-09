@@ -16,12 +16,28 @@
     {
       packages = forAllSystems
         (system: {
-          default =  pkgs.${system}.buildGoApplication
+          default = pkgs.${system}.buildGoApplication
             {
               pname = "asciiquarium.live";
               version = "0.1";
               src = ./.;
               modules = ./gomod2nix.toml;
+
+              nativeBuildInputs = with pkgs.${system}; [ makeWrapper ];
+
+              installPhase = ''
+                runHook preInstall
+
+                mkdir -p $out
+                dir="$GOPATH/bin"
+
+                [ -e "$dir" ] && cp -r $dir $out
+
+                wrapProgram $out/bin/asciiquarium.live \
+                  --prefix PATH : ${pkgs.${system}.lib.makeBinPath [ pkgs.${system}.asciiquarium ]}
+
+                runHook postInstall
+              '';
             };
         });
 
@@ -29,6 +45,7 @@
         default = pkgs.${system}.mkShell {
           buildInputs = with pkgs.${system}; [
             gomod2nix
+            asciiquarium
             (mkGoEnv { pwd = ./.; })
           ];
         };
