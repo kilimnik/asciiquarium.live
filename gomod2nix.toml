@@ -2,5 +2,5 @@ schema = 3
 
 [mod]
   [mod."github.com/creack/pty"]
-    version = "v1.1.18"
-    hash = "sha256-xMpCnIDjIf1NpmuywaK6cRaYnQ4kXvXU5n57aQqY6S8="
+    version = "v1.1.24"
+    hash = "sha256-6oSurN/ZYr/KHxKKU6Qbw9w8CDKmPa8yL00pZ24H0AM="
